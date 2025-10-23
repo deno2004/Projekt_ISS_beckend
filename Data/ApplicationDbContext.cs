@@ -9,6 +9,6 @@ namespace Projekt_ISS_be.Data
             : base(options)
         {
         }
-        public DbSet<User> Users { get; set; } // ✅ Add this
+        public DbSet<User> Users { get; set; } 
     }
 }

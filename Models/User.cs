@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Projekt_ISS_be.Models
 {
-    [Table("users")] // matches your SQLite table name
+    [Table("users")] 
     public class User
     {
         [Key]

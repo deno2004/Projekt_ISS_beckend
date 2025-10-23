@@ -68,7 +68,7 @@ namespace NetflixIMDB_kopija.Controllers
                 FirstName = firstname,
                 LastName = lastname,
                 Email = email,
-                Password = password // ⚠️ For real apps, hash this!
+                Password = password 
             };
 
             _context.Users.Add(newUser);
