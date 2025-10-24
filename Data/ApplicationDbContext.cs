@@ -10,5 +10,6 @@ namespace Projekt_ISS_be.Data
         {
         }
         public DbSet<User> Users { get; set; } 
+        public DbSet<Models.Task> Tasks { get; set; }
     }
 }

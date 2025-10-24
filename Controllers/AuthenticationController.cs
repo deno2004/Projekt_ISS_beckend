@@ -25,7 +25,7 @@ namespace NetflixIMDB_kopija.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            var user = await _context.Users
+            kvar user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
 
             if (user == null)
@@ -48,7 +48,7 @@ namespace NetflixIMDB_kopija.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity));
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Task");
         }
 
         [HttpGet]
