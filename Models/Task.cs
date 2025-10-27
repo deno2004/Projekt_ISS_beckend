@@ -10,5 +10,12 @@ namespace Projekt_ISS_be.Models
         [Key]
         [Column("task_id")]
         public int TaskId { get; set; }
+
+        [Column("title")]
+        public string Title { get; set; }
+
+        [Column("description")]
+        public string Description { get; set; }
+
     }
 }
