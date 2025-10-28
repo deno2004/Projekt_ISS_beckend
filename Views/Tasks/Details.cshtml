@@ -1,0 +1,18 @@
+﻿@model Projekt_ISS_be.Models.Task
+@{
+    ViewData["Title"] = Model.Title;
+}
+<div class="container-fluid px-5 py-4"> 
+    <h2>@Model.Title</h2>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Description))
+    {
+    <p>@Model.Description</p>
+    }
+    else
+    {
+    <p><i>No description available.</i></p>
+    }
+
+    <a asp-controller="Tasks" asp-action="Index" class="btn-back">⬅ Back to Movies</a>
+</div>

@@ -48,7 +48,7 @@ namespace NetflixIMDB_kopija.Controllers
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(claimsIdentity));
 
-            return RedirectToAction("Index", "Task");
+            return RedirectToAction("Index", "Tasks");
         }
 
         [HttpGet]
