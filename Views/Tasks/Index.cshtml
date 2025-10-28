@@ -3,26 +3,40 @@
     ViewData["Title"] = "My Tasks";
 }
 
-<div class="container-fluid px-5 py-4"> 
-    <h2>All Tasks</h2> 
-    <div class="row g-4"> 
-        @if (Model != null && Model.Any()) 
-        { 
-            @foreach (var tasks in Model) 
-            {
-                <div class="col-6 col-sm-4 col-md-3 col-lg-2"> 
-                    <div class="movie-card"> 
-                        <div class="movie-info"> 
-                            <h5>@tasks.Title</h5> 
-                            <a asp-controller="Tasks" asp-action="Details" asp-route-id="@tasks.TaskId" class="btn-view">View Details</a> 
-                        </div> 
-                    </div> 
-                </div>
-            }
-        } else
+<h2>My Tasks</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">➕ Add New Task</a>
+</p>
+
+<table class="table table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th style="width:200px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
         {
-                <p class="text-center">No tasks available at the moment.</p>
+            @foreach (var task in Model)
+            {
+                <tr>
+                    <td>@task.Title</td>
+                    <td>@task.Description</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@task.TaskId" class="btn btn-info btn-sm">View</a>
+                        <a asp-action="Edit" asp-route-id="@task.TaskId" class="btn btn-warning btn-sm">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@task.TaskId" class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+            }
         }
-    </div> 
-</div>
+        else
+        {
+            <tr><td colspan="4" class="text-center">No tasks found.</td></tr>
+        }
+    </tbody>
+</table>
 
