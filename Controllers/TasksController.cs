@@ -4,164 +4,177 @@ using Microsoft.EntityFrameworkCore;
 using Projekt_ISS_be.Data;
 using Projekt_ISS_be.Models;
 using System.Security.Claims;
-using System.Threading.Tasks;
+
 namespace Projekt_ISS_be.Controllers
 {
-    public class TasksController : Controller
+    [Route("api/tasks")]
+    [ApiController]
+    [Authorize]
+    public class TasksController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+
         public TasksController(ApplicationDbContext context)
         {
             _context = context;
         }
-        public async Task<IActionResult> Index()
+
+        // GET: api/tasks
+        [HttpGet]
+        public async Task<IActionResult> GetTasks()
         {
-            var tasks = _context.Tasks.ToList();
-            return View(tasks);
-        }
-
-        [AllowAnonymous]
-        public async Task<IActionResult> Details(int id)
-        {
-            var tasks = await _context.Tasks.FirstOrDefaultAsync(t => t.TaskId == id);
-            if (tasks == null)
-                return NotFound();
-
-            return View(tasks);
-        }
-
-        public IActionResult Create() => View();
-
-        // 🟡 CREATE (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Models.Task newTask)
-        {
-            var userId = User.FindFirstValue("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Authentication");
-
             try
             {
-                _context.Tasks.Add(newTask);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                var userId = int.Parse(userIdClaim);
+
+                var tasks = await _context.Tasks
+                    .Where(t => t.UserId == userId)
+                    .Select(t => new
+                    {
+                        id = t.TaskId,
+                        title = t.Title,
+                        description = t.Description
+                    })
+                    .ToListAsync();
+
+                return Ok(tasks);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetTasks: {ex.Message}");
+                return StatusCode(500, new { message = "Error loading tasks" });
+            }
+        }
+
+        // POST: api/tasks
+        [HttpPost]
+        public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto dto)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                var userId = int.Parse(userIdClaim);
+
+                var task = new Models.Task
+                {
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    UserId = userId,
+                };
+
+                _context.Tasks.Add(task);
                 await _context.SaveChangesAsync();
 
-                ViewBag.Message = "Task created successfully!";
-                return RedirectToAction(nameof(Index));
+                return Ok(new
+                {
+                    id = task.TaskId,
+                    title = task.Title,
+                    description = task.Description
+                });
             }
-            catch
+            catch (Exception ex)
             {
-                ViewBag.Error = "Error creating task.";
-                return View(newTask);
+                Console.WriteLine($"Error in CreateTask: {ex.Message}");
+                return StatusCode(500, new { message = "Error creating task" });
             }
         }
 
-        // 🔵 EDIT (GET)
-        public async Task<IActionResult> Edit(int id)
+        // PUT: api/tasks/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateTaskDto dto)
         {
-            var userId = User.FindFirstValue("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Authentication");
-
-            var task = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.TaskId == id);
-
-            if (task == null)
-            {
-                ViewBag.Error = "Task not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(task);
-        }
-
-        // 🔵 EDIT (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Models.Task updatedTask)
-        {
-            var userId = User.FindFirstValue("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Authentication");
-
-            var existingTask = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.TaskId == updatedTask.TaskId);
-
-            if (existingTask == null)
-            {
-                ViewBag.Error = "Task not found.";
-                return View(updatedTask);
-            }
-
-            existingTask.Title = updatedTask.Title;
-            existingTask.Description = updatedTask.Description;
-
             try
             {
-                _context.Update(existingTask);
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                var userId = int.Parse(userIdClaim);
+
+                var task = await _context.Tasks
+                    .FirstOrDefaultAsync(t => t.TaskId == id && t.UserId == userId);
+
+                if (task == null)
+                {
+                    return NotFound(new { message = "Task not found" });
+                }
+
+                task.Title = dto.Title;
+                task.Description = dto.Description;
+
                 await _context.SaveChangesAsync();
 
-                ViewBag.Message = "Task updated successfully!";
-                return RedirectToAction(nameof(Index));
+                return Ok(new
+                {
+                    id = task.TaskId,
+                    title = task.Title,
+                    description = task.Description
+                });
             }
-            catch
+            catch (Exception ex)
             {
-                ViewBag.Error = "Error updating task.";
-                return View(updatedTask);
+                Console.WriteLine($"Error in UpdateTask: {ex.Message}");
+                return StatusCode(500, new { message = "Error updating task" });
             }
         }
 
-        // 🔴 DELETE (GET)
-        public async Task<IActionResult> Delete(int id)
+        // DELETE: api/tasks/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTask(int id)
         {
-            var userId = User.FindFirstValue("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Authentication");
-
-            var task = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.TaskId == id);
-
-            if (task == null)
-            {
-                ViewBag.Error = "Task not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(task);
-        }
-
-        // 🔴 DELETE (POST)
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var userId = User.FindFirstValue("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Authentication");
-
-            var task = await _context.Tasks
-                .FirstOrDefaultAsync(t => t.TaskId == id);
-
-            if (task == null)
-            {
-                ViewBag.Error = "Task not found.";
-                return RedirectToAction(nameof(Index));
-            }
-
             try
             {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized(new { message = "User not authenticated" });
+                }
+
+                var userId = int.Parse(userIdClaim);
+
+                var task = await _context.Tasks
+                    .FirstOrDefaultAsync(t => t.TaskId == id && t.UserId == userId);
+
+                if (task == null)
+                {
+                    return NotFound(new { message = "Task not found" });
+                }
+
                 _context.Tasks.Remove(task);
                 await _context.SaveChangesAsync();
 
-                ViewBag.Message = "Task deleted successfully!";
-                return RedirectToAction(nameof(Index));
+                return Ok(new { message = "Task deleted successfully" });
             }
-            catch
+            catch (Exception ex)
             {
-                ViewBag.Error = "Error deleting task.";
-                return View(task);
+                Console.WriteLine($"Error in DeleteTask: {ex.Message}");
+                return StatusCode(500, new { message = "Error deleting task" });
             }
         }
+    }
 
+    public class CreateTaskDto
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+    }
+
+    public class UpdateTaskDto
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
     }
 }

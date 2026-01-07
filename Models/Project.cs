@@ -3,13 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Projekt_ISS_be.Models
 {
-    [Table("tasks")]
-
-    public class Task
+    [Table("projects")]
+    public class Project
     {
         [Key]
-        [Column("task_id")]
-        public int TaskId { get; set; }
+        [Column("project_id")]
+        public int ProjectId { get; set; }
 
         [Column("title")]
         public string Title { get; set; }
@@ -25,6 +24,6 @@ namespace Projekt_ISS_be.Models
         // Navigation property
         [ForeignKey("UserId")]
         public User? User { get; set; }
-
     }
 }
+

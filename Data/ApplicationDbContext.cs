@@ -14,6 +14,8 @@ namespace Projekt_ISS_be.Data
 
         public DbSet<Models.Task> Tasks { get; set; }
 
+        public DbSet<Project> Projects { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
